@@ -117,9 +117,9 @@ function armar() {
     pct + '% off Efectivo/transfer: $' + fmt(p),
     '',
     'En cuotas:',
-    fmt(v3) + '  -  3 cuotas de $' + fmt(v3 / 3),
-    fmt(v6) + '  -  6 cuotas de $' + fmt(v6 / 6),
-    fmt(v12) + '  -  12 cuotas de $' + fmt(v12 / 12)
+    '3 x $' + fmt(v3 / 3) + ' = $' + fmt(v3),
+    '6 x $' + fmt(v6 / 6) + ' = $' + fmt(v6),
+    '12 x $' + fmt(v12 / 12) + ' = $' + fmt(v12)
   ].join('\n');
 }
 
