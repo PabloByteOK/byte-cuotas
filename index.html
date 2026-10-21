@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B6B3A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Cuotas BYTE</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #F4F7F5; color: #1a2e22; }
+  header { background: #1B6B3A; color: #fff; padding: 14px 16px; font-size: 20px; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
+  header span { font-size: 12px; font-weight: 400; opacity: .85; }
+  main { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; }
+  label { display: block; font-weight: 700; margin: 14px 0 6px; }
+  #precio { width: 100%; font-size: 26px; font-weight: 700; padding: 12px 14px; border: 2px solid #1B6B3A; border-radius: 10px; background: #FFF3BF; }
+  #precio:focus { outline: none; box-shadow: 0 0 0 3px rgba(27,107,58,.25); }
+  .tasas { background: #fff; border: 1px solid #D7E3DB; border-radius: 12px; padding: 12px; margin-top: 16px; }
+  .tasas h2 { font-size: 13px; color: #C75B12; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: 1fr 110px; gap: 8px 10px; align-items: center; }
+  .grid label { margin: 0; font-size: 14px; font-weight: 600; }
+  .grid input { width: 100%; font-size: 15px; padding: 8px 10px; border: 1px solid #C3D3C9; border-radius: 8px; text-align: right; background: #FFE3CC; }
+  .grid input:focus { outline: none; border-color: #C75B12; }
+  .salida { background: #fff; border: 1px solid #D7E3DB; border-radius: 12px; padding: 12px; margin-top: 16px; }
+  .salida h2 { font-size: 13px; color: #1B6B3A; margin-bottom: 8px; }
+  #texto { white-space: pre-wrap; font-family: Consolas, monospace; font-size: 15px; line-height: 1.5; min-height: 120px; background: #F8FBF9; border: 1px dashed #B7C9BD; border-radius: 8px; padding: 10px; }
+  #btn { display: block; width: 100%; margin-top: 16px; font-size: 20px; font-weight: 800; padding: 16px; border: none; border-radius: 12px; background: #1B6B3A; color: #fff; cursor: pointer; }
+  #btn:active { transform: scale(.98); }
+  #btn:disabled { background: #9DB6A6; }
+  #ok { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(80px); background: #0E1B12; color: #fff; padding: 12px 22px; border-radius: 999px; font-weight: 700; opacity: 0; transition: all .25s; pointer-events: none; }
+  #ok.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .pie { text-align: center; font-size: 12px; color: #7a8f82; margin-top: 18px; }
+</style>
+</head>
+<body>
+<header>💰 Cuotas BYTE <span>precios y cuotas</span></header>
+<main>
+  <label for="precio">Precio EFECTIVO / TRANSFERENCIA</label>
+  <input id="precio" inputmode="numeric" placeholder="744.718" autocomplete="off">
+
+  <section class="tasas">
+    <h2>📌 TASAS — cambialas acá si se mueven</h2>
+    <div class="grid">
+      <label for="t-debito">Débito (%)</label>
+      <input id="t-debito" inputmode="decimal">
+      <label for="t-pago1">Tarjeta 1 pago (%)</label>
+      <input id="t-pago1" inputmode="decimal">
+      <label for="t-3">3 cuotas (%)</label>
+      <input id="t-3" inputmode="decimal">
+      <label for="t-6">6 cuotas (%)</label>
+      <input id="t-6" inputmode="decimal">
+      <label for="t-12">12 cuotas (%)</label>
+      <input id="t-12" inputmode="decimal">
+    </div>
+  </section>
+
+  <section class="salida">
+    <h2>Texto para WhatsApp (lo copia el botón)</h2>
+    <pre id="texto"></pre>
+  </section>
+
+  <button id="btn">COPIAR</button>
+  <p class="pie">BYTE Computers · San Lorenzo · se guardan tus tasas en este dispositivo</p>
+</main>
+<div id="ok">¡Copiado!</div>
+
+<script>
+const DEF = { debito: 10, pago1: 10, c3: 20.852, c6: 29.852, c12: 52 };
+let tasas = Object.assign({}, DEF);
+try {
+  const s = JSON.parse(localStorage.getItem('byte_tasas'));
+  if (s && typeof s === 'object') tasas = Object.assign(tasas, s);
+} catch (e) {}
+
+const precioEl = document.getElementById('precio');
+const textoEl = document.getElementById('texto');
+const okEl = document.getElementById('ok');
+const btn = document.getElementById('btn');
+const ids = { debito: 't-debito', pago1: 't-pago1', c3: 't-3', c6: 't-6', c12: 't-12' };
+
+const fmt = n => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(n));
+function parseNum(s) {
+  if (s === null || s === undefined) return 0;
+  const c = String(s).replace(/\s/g, '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+  return parseFloat(c) || 0;
+}
+function parsePct(s) {
+  const v = parseFloat(String(s).replace(',', '.')); return isNaN(v) ? 0 : v;
+}
+
+function cargarTasasUI() {
+  for (const k in ids) {
+    document.getElementById(ids[k]).value = String(tasas[k]).replace('.', ',');
+  }
+}
+function armar() {
+  const p = parseNum(precioEl.value);
+  if (p <= 0) { textoEl.textContent = ''; btn.disabled = true; return; }
+  btn.disabled = false;
+  const v3 = p * (1 + tasas.c3 / 100), v6 = p * (1 + tasas.c6 / 100), v12 = p * (1 + tasas.c12 / 100);
+  textoEl.textContent = [
+    'Efectivo/transferencia: $' + fmt(p),
+    'Débito: $' + fmt(p * (1 + tasas.debito / 100)),
+    'Tarjeta 1 pago: $' + fmt(p * (1 + tasas.pago1 / 100)),
+    '',
+    'En cuotas:',
+    fmt(v3) + '  -  3 cuotas de $' + fmt(v3 / 3),
+    fmt(v6) + '  -  6 cuotas de $' + fmt(v6 / 6),
+    fmt(v12) + '  -  12 cuotas de $' + fmt(v12 / 12)
+  ].join('\n');
+}
+
+precioEl.addEventListener('input', armar);
+precioEl.addEventListener('blur', () => {
+  const v = parseNum(precioEl.value);
+  precioEl.value = v > 0 ? fmt(v) : '';
+});
+for (const k in ids) {
+  document.getElementById(ids[k]).addEventListener('input', e => {
+    tasas[k] = parsePct(e.target.value);
+    localStorage.setItem('byte_tasas', JSON.stringify(tasas));
+    armar();
+  });
+}
+btn.addEventListener('click', async () => {
+  const t = textoEl.textContent;
+  if (!t) return;
+  try {
+    await navigator.clipboard.writeText(t);
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+  okEl.classList.add('show');
+  setTimeout(() => okEl.classList.remove('show'), 1500);
+});
+
+cargarTasasUI();
+armar();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
