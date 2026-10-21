@@ -45,10 +45,8 @@
   <section class="tasas">
     <h2>📌 TASAS — cambialas acá si se mueven</h2>
     <div class="grid">
-      <label for="t-debito">Débito (%)</label>
+      <label for="t-debito">Débito/Crédito (%)</label>
       <input id="t-debito" inputmode="decimal">
-      <label for="t-pago1">Tarjeta 1 pago (%)</label>
-      <input id="t-pago1" inputmode="decimal">
       <label for="t-3">3 cuotas (%)</label>
       <input id="t-3" inputmode="decimal">
       <label for="t-6">6 cuotas (%)</label>
@@ -69,7 +67,7 @@
 <div id="ok">¡Copiado!</div>
 
 <script>
-const DEF = { debito: 10, pago1: 10, c3: 20.852, c6: 29.852, c12: 52 };
+const DEF = { debito: 10, c3: 20.852, c6: 29.852, c12: 52 };
 let tasas = Object.assign({}, DEF);
 try {
   const s = JSON.parse(localStorage.getItem('byte_tasas'));
@@ -80,7 +78,7 @@ const precioEl = document.getElementById('precio');
 const textoEl = document.getElementById('texto');
 const okEl = document.getElementById('ok');
 const btn = document.getElementById('btn');
-const ids = { debito: 't-debito', pago1: 't-pago1', c3: 't-3', c6: 't-6', c12: 't-12' };
+const ids = { debito: 't-debito', c3: 't-3', c6: 't-6', c12: 't-12' };
 
 const fmt = n => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(n));
 function parseNum(s) {
@@ -102,10 +100,10 @@ function armar() {
   if (p <= 0) { textoEl.textContent = ''; btn.disabled = true; return; }
   btn.disabled = false;
   const v3 = p * (1 + tasas.c3 / 100), v6 = p * (1 + tasas.c6 / 100), v12 = p * (1 + tasas.c12 / 100);
+  const pct = String(tasas.debito).replace('.', ',');
   textoEl.textContent = [
-    'Efectivo/transferencia: $' + fmt(p),
-    'Débito: $' + fmt(p * (1 + tasas.debito / 100)),
-    'Tarjeta 1 pago: $' + fmt(p * (1 + tasas.pago1 / 100)),
+    'Débito/Crédito 1 pago: $' + fmt(p * (1 + tasas.debito / 100)),
+    pct + '% off Efectivo/transfer: $' + fmt(p),
     '',
     'En cuotas:',
     fmt(v3) + '  -  3 cuotas de $' + fmt(v3 / 3),
