@@ -4,7 +4,7 @@
   "description": "Precios y cuotas al instante - BYTE Computers",
   "start_url": ".",
   "scope": ".",
-  "display": "stable",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F4F7F5",
   "theme_color": "#1B6B3A",
