@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <title>Cuotas BYTE</title>
+<script>try{if(localStorage.getItem('byte_tema')==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: system-ui, -apple-system, sans-serif; background: #F4F7F5; color: #1a2e22; }
@@ -34,10 +35,20 @@
   #ok { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(80px); background: #0E1B12; color: #fff; padding: 12px 22px; border-radius: 999px; font-weight: 700; opacity: 0; transition: all .25s; pointer-events: none; }
   #ok.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   .pie { text-align: center; font-size: 12px; color: #7a8f82; margin-top: 18px; }
+  #tema { margin-left: auto; background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
+  html.dark body { background: #0E1512; color: #E8F0EA; }
+  html.dark #precio { background: #3D3413; border-color: #2E8B57; color: #FFF3BF; }
+  html.dark .tasas, html.dark .salida { background: #16211B; border-color: #2A3D33; }
+  html.dark .tasas h2 { color: #F0A05A; }
+  html.dark .salida h2 { color: #6FCF97; }
+  html.dark .grid input { background: #3D3413; border-color: #5A4A28; color: #FFE3CC; }
+  html.dark #texto { background: #0E1512; border-color: #2A3D33; }
+  html.dark .pie { color: #8FA89A; }
+  html.dark #ok { background: #E8F0EA; color: #0E1512; }
 </style>
 </head>
 <body>
-<header>💰 Cuotas BYTE <span>precios y cuotas</span></header>
+<header>💰 Cuotas BYTE <span>precios y cuotas</span><button id="tema" aria-label="Cambiar tema">🌙</button></header>
 <main>
   <label for="precio">Precio EFECTIVO / TRANSFERENCIA</label>
   <input id="precio" inputmode="numeric" placeholder="744.718" autocomplete="off">
@@ -136,6 +147,24 @@ btn.addEventListener('click', async () => {
   }
   okEl.classList.add('show');
   setTimeout(() => okEl.classList.remove('show'), 1500);
+});
+
+const temaBtn = document.getElementById('tema');
+function aplicarTema(t) {
+  const oscuro = t === 'dark';
+  document.documentElement.classList.toggle('dark', oscuro);
+  temaBtn.textContent = oscuro ? '☀️' : '🌙';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = oscuro ? '#0E1512' : '#1B6B3A';
+  try { localStorage.setItem('byte_tema', t); } catch (e) {}
+}
+let temaGuardado = null;
+try { temaGuardado = localStorage.getItem('byte_tema'); } catch (e) {}
+aplicarTema(temaGuardado === 'dark' ? 'dark'
+  : temaGuardado === 'claro' ? 'claro'
+  : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'claro'));
+temaBtn.addEventListener('click', () => {
+  aplicarTema(document.documentElement.classList.contains('dark') ? 'claro' : 'dark');
 });
 
 cargarTasasUI();
